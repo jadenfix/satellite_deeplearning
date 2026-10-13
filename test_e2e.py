@@ -11,7 +11,7 @@ class E2E(unittest.TestCase):
   with urllib.request.urlopen(req,timeout=30) as r:return json.loads(r.read())
  def restart(self):self.proc.terminate();self.proc.wait(timeout=5);self.proc.stdout.close();self.start()
  def test_train_holdout_restart(self):
-  d=self.request('/api/runs',{'seed':42});self.assertGreater(d['water_iou'],.85);self.assertEqual(len(d['scenes']),4);self.assertFalse(set(d['train_image_seeds'])&set(d['heldout_image_seeds']));self.assertEqual(d['test_pixels'],sum(d['confusion'].values()));self.restart();self.assertEqual(self.request('/api/runs/'+str(d['id']))['model'],d['model']);self.assertEqual(len(self.request('/api/runs')['items']),1)
+  d=self.request('/api/runs',{'seed':42});self.assertGreater(d['water_iou'],.85);self.assertEqual(len(d['scenes']),4);self.assertFalse(set(d['train_image_seeds'])&set(d['heldout_image_seeds']));self.assertEqual(d['reload_max_logit_difference'],0.0);self.assertLess(d['training_loss'][-1],d['training_loss'][0]);self.assertEqual(d['model']['type'],'CPU_3_layer_CNN');self.assertEqual(d['test_pixels'],sum(d['confusion'].values()));self.restart();self.assertEqual(self.request('/api/runs/'+str(d['id']))['model'],d['model']);self.assertEqual(len(self.request('/api/runs')['items']),1)
  def test_validation_and_determinism(self):
   for data in [[],{'seed':True},{'seed':-1},{'seed':'42'}]:
    with self.assertRaises(urllib.error.HTTPError) as e:self.request('/api/runs',data)
